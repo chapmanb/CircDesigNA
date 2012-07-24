@@ -112,10 +112,10 @@ public class DnaDefinition extends MonomerDefinition{
 //			return C;
 //		case H:
 //			return G;
-		case P:
-			return C;
-		case Z:
-			return G;
+//		case P:
+//			return C;
+//		case Z:
+//			return G;
 		default:
 			throw new IllegalArgumentException("Unrecognized Base: "+x);
 		}

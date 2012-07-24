@@ -19,7 +19,7 @@
 */
 package circdesigna;
 
-import static circdesigna.GeneralizedInteractiveRegion.NA_COMPLEMENT_FLAG;
+import static circdesigna.GSFR.NA_COMPLEMENT_FLAG;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -139,10 +139,10 @@ public class DomainPolymerGraph extends AbstractComplex{
 	public class BasePolymerGraph extends AbstractPolymerGraph{
 		//Indexed by position in the string.
 		//Domain -1 is a 3' end.
-		private int[] domains;
-		private CircDesigNAStyle[] styles;
+		private int[] domains = new int[0];
+		private CircDesigNAStyle[] styles = new CircDesigNAStyle[0];
 		//-1 means "not paired".
-		private int[] domain_pairs;
+		private int[] domain_pairs = new int[0];
 		public BasePolymerGraph getCyclicIndependentForm() {
 			return this;
 		}
@@ -259,8 +259,9 @@ public class DomainPolymerGraph extends AbstractComplex{
 	public static void readStructure(String moleculeDefinition, DomainPolymerGraph out2){
 		
 		BasePolymerGraph out = out2.data.getCyclicIndependentForm();
-		out.domains = null;
-		out.domain_pairs = null;
+		out.domains = new int[0];
+		out.domain_pairs = new int[0];
+		out.styles = new CircDesigNAStyle[0];
 
 		//Tested and verified. Group 2 : Domain, with comp flag, Group 1 + Group 3: Structural flag
 		ParseResult t = CDNA2PublicParser.parse(moleculeDefinition, out2.domainDefs);
@@ -309,7 +310,7 @@ public class DomainPolymerGraph extends AbstractComplex{
 				if (numberDomain2 < 0){
 					throw new RuntimeException("Invalid domain: "+domainName);
 				}
-				
+
 				if (out2.domainDefs.domainLengths[numberDomain2] == 0){
 					//Ignore domains of length 0 when parsing the structures.
 				} else {

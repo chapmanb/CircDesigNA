@@ -46,6 +46,7 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 	 * Invertible.
 	 */
 	private Map<String, Integer> nameMap = new TreeMap();
+	private Map<String, String[]> combinedDomains = new TreeMap();
 	//keys are domains converted to numbers.
 	public String getDomainName(int domain){
 		String postpend = ((domain & NA_COMPLEMENT_FLAG)!=0?"*":"");
@@ -124,7 +125,8 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 		Scanner in = new Scanner(domainDefsBlock);
 		int k = 0;
 		while(in.hasNextLine()){
-			k = parseDomainDefLine(in.nextLine(),out,domainLengths,k);
+			parseDomainDefLine(in.nextLine(),out,domainLengths,k);
+			k++;
 		}
 		
 		//Remove
@@ -139,7 +141,7 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 		}
 	}
 
-	private static int parseDomainDefLine(String nextLine, DomainDefinitions out, List<Integer> domainLengths, int k) {
+	private static void parseDomainDefLine(String nextLine, DomainDefinitions out, List<Integer> domainLengths, int lineNumber) {
 		//Hack to simulate tokenizing 
 		nextLine = nextLine.replaceAll("\\s*,\\s*",",");
 		nextLine = nextLine.replaceAll("\\s*\\(\\s*","(");
@@ -148,36 +150,42 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 		
 		String[] line = nextLine.trim().split("\\s+");
 		if (line.length<=1){ //0 is sort of impossible though.
-			return k;
+			return;
 		}
 		String domainID = line[0];
 		if (domainID.length()==0){
-			throw new RuntimeException("'Empty' Domain ID: on line "+(k+1));
+			throw new RuntimeException("'Empty' Domain ID: on line "+(lineNumber+1));
 		}
 		if (Character.isWhitespace(nextLine.charAt(0))){
-			throw new RuntimeException("'Empty' Domain ID: on line "+(k+1)+". (Leading whitespace?)");
+			throw new RuntimeException("'Empty' Domain ID: on line "+(lineNumber+1)+". (Leading whitespace?)");
 		}
 		if (out.nameMap.containsKey(domainID)){
-			throw new RuntimeException("Listed Domain "+domainID+" twice. (on line "+(k+1)+")");
+			throw new RuntimeException("Listed Domain "+domainID+" twice. (on line "+(lineNumber+1)+")");
 		}
-		domainLengths.add(-1);//initialize length
-		out.nameMap.put(domainID,k);
-		int seqIndex = 1;
+		
+
+		int domain = domainLengths.size();
+		
+		int term = 1;
 		int seqLen = -1;
 		String argsCumulativeString = "";
+		int flags = 0;
 		if (line[1].matches("\\d+")){
 			//We have length map (optional)
-			seqIndex = 2;
-			domainLengths.set(k,seqLen = new Integer(line[1]));
+			term = 2;
+			seqLen = new Integer(line[1]);
 		}
 		//Sequence constraints...
-		if (line.length>seqIndex){
+		String positionalConstraints = null;
+		String compositionConstraint = null;
+		String initialSeq = null;
+		if (line.length>term){
 			//Parse the position-specific constraints block, if we have one.
-			if (line[seqIndex].charAt(0)!='-'){
-				argsCumulativeString += line[seqIndex]+" "; //Add the constraints as an "argument"
+			if (line[term].charAt(0)!='-'){
+				argsCumulativeString += line[term]+" "; //Add the constraints as an "argument"
 				StringBuffer constraintParsed = new StringBuffer();
-				for(int e = 0; e < line[seqIndex].length(); e++){
-					char kc = line[seqIndex].charAt(e);
+				for(int e = 0; e < line[term].length(); e++){
+					char kc = line[term].charAt(e);
 					if (Character.toLowerCase(kc)=='u'){
 						kc = 'T'; // rna / dna treated equally.
 					}
@@ -185,25 +193,24 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 					kc = Character.toUpperCase(kc);
 					constraintParsed.append(kc);
 				}
-				line[seqIndex] = constraintParsed.toString();
+				line[term] = constraintParsed.toString();
 				//Ok! load the constraint. Default to "unconstrained".
-				if (line[seqIndex].equalsIgnoreCase("TBD")){
+				if (line[term].equalsIgnoreCase("TBD")){
 					//Lol, silly format.
 				} else {
-					out.domainConstraints.put(k,line[seqIndex]);
+					positionalConstraints = line[term];
 					//Test the constraint out:
-					for(char u : line[seqIndex].toCharArray()){
+					for(char u : line[term].toCharArray()){
 						out.Std.monomer.decodeConstraintChar(u);
 					}
-					domainLengths.set(k,seqLen = line[seqIndex].length());
+					seqLen = line[term].length();
 				}
-				seqIndex++;
+				term++;
 			}
 			//Parse arguments.
 			//Do we have flags?
-			int flagSum = 0;
 			Pattern decodeArg = Pattern.compile("\\-([^\\(]*)(\\((.*)\\))?");
-			for(int flag = seqIndex; flag < line.length; flag++){
+			for(int flag = term; flag < line.length; flag++){
 				Matcher m = decodeArg.matcher(line[flag]);
 				if(m.find()){
 					String paramName = m.group(1);
@@ -218,39 +225,44 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 							if (seqLen%3!=0){
 								throw new RuntimeException("Domain "+domainID+" not a valid protein sequence - length not a multiple of 3");
 							}
-							flagSum |= FLAG_CONSERVEAMINOS;
+							flags |= FLAG_CONSERVEAMINOS;
 						} else  
 						if (paramName.equalsIgnoreCase("seq")){
-							String old2 = out.compositionConstraints.get(k);
-							if (old2==null){
-								old2 = "";
+							String cc = compositionConstraint;
+							if (cc==null){
+								cc = "";
 							}
-							while(old2.endsWith(",")){
-								old2 = old2.substring(0,old2.length()-1);
+							while(cc.endsWith(",")){
+								cc = cc.substring(0,cc.length()-1);
 							}
-							if (old2.contains(",")){
-								old2+=",";
+							if (cc.contains(",")){
+								cc+=",";
 							}
 							if (args==null){
 								throw new RuntimeException(String.format("Invalid argument to parameter %s. Missing parenthesis?",paramName));
 							}
-							out.compositionConstraints.put(k, old2+args);
+							compositionConstraint = cc + args;
 						} else 
 						if (paramName.equalsIgnoreCase("init")){
 							if (args==null){
 								throw new RuntimeException(String.format("Invalid argument to parameter %s. Missing parenthesis?",paramName));
 							}
-							if (args.length() != domainLengths.get(k)){
-								throw new RuntimeException(String.format("Initialization is not length %d, as it should be. %s",domainLengths.get(k),args));
+							if (args.length() != seqLen){
+								throw new RuntimeException(String.format("Initialization is not length %d, as it should be. %s",seqLen,args));
 							}
-							if (out.domainInitialSeqs.get(k)!=null){
+							if (initialSeq!=null){
 								throw new RuntimeException("Multiple initialization blocks are not allowed.");
 							}
 							//Test the initialization out:
 							for(char u : args.toCharArray()){
 								int b = out.Std.monomer.decodeInitializationChar(u);
 							}
-							out.domainInitialSeqs.put(k,args);
+							initialSeq = args;
+						} else
+						if (paramName.equalsIgnoreCase("combine")){
+							//Ignore all other parameters and exit.
+							out.addCombinedDomains(domainID, args);
+							return;
 						} else {
 							throw new RuntimeException("No such option");
 						}
@@ -259,18 +271,30 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 					}
 				}
 			}
-			out.otherRuleFlags.put(k,flagSum);
 		}
-		out.reprintArguments.put(k,argsCumulativeString);
 		if (seqLen==-1){
 			throw new RuntimeException("Assertion error - no length for domain '"+domainID+"'");
 		}
-		//Success, move on to next.
-		return k+1;
+		domainLengths.add(-1);
+		if (positionalConstraints != null){
+			out.domainConstraints.put(domain,positionalConstraints);
+		}
+		if (compositionConstraint != null){
+			out.compositionConstraints.put(domain, compositionConstraint);
+		}
+		if (initialSeq != null){
+			out.domainInitialSeqs.put(domain,initialSeq);
+		}
+		domainLengths.set(domain, seqLen);//initialize length
+		out.nameMap.put(domainID,domain);
+		out.reprintArguments.put(domain,argsCumulativeString);
+		out.otherRuleFlags.put(domain,flags);
 	}
 
+	private void addCombinedDomains(String domainID, String combine) {
+		combinedDomains.put(domainID, combine.replaceAll("\\s+","").split(","));
+	}
 	
-
 	boolean maintainAminos(int k) {
 		Integer integer = otherRuleFlags.get(k);
 		if (integer==null){
@@ -350,5 +374,52 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 		}
 		return new Integer(percent);
 	}
-
+	/**
+	 * Returns the combination domains in the format (one per line)
+	 * 
+	 * <comboname> -combine(<domains>)
+	 * 
+	 * where <domains> contains the list of domains this combination domain contains.
+	 */
+	public String getCombinationDomainSpecs() {
+		StringBuffer sb = new StringBuffer();
+		for(Entry<String, String[]> combo : combinedDomains.entrySet()){
+			sb.append(combo.getKey()+" -combine(");
+			String[] val = combo.getValue();
+			for(int i = 0; i < val.length; i++){
+				sb.append(val[i]);
+				if (i + 1 < val.length){
+					sb.append(", ");
+				}
+			}
+			sb.append(")\n");
+		}
+		return sb.toString();
+	}
+	public String[] expandCombinationName(String name) {
+		String nameL = name;
+		if (name.endsWith("*")){
+			nameL = name.substring(0, name.length()-1);
+		}
+		String[] toRet = combinedDomains.get(nameL);
+		if (toRet == null){
+			return new String[]{name};
+		}
+		if (name.endsWith("*")){
+			toRet = complement(toRet);
+		}
+		return toRet;
+	}
+	private String[] complement(String[] a) {
+		String[] b = new String[a.length];
+		for(int i = 0; i < b.length; i++){
+			b[i] = a[a.length-1-i];
+			if (b[i].endsWith("*")){
+				b[i] = b[i].substring(0, b[i].length()-1);
+			} else {
+				b[i] += "*";
+			}
+		}
+		return b;
+	}
 }

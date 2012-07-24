@@ -19,8 +19,8 @@
 */
 package circdesigna;
 
-import static circdesigna.GeneralizedInteractiveRegion.NA_COMPLEMENT_FLAG;
-import static circdesigna.GeneralizedInteractiveRegion.NA_COMPLEMENT_FLAGINV;
+import static circdesigna.GSFR.NA_COMPLEMENT_FLAG;
+import static circdesigna.GSFR.NA_COMPLEMENT_FLAGINV;
 import static circdesigna.abstractpolymer.DnaDefinition.C;
 
 import java.awt.event.ActionEvent;
@@ -287,6 +287,7 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 				sb.append(")");
 				sb.append(lR);
 			}
+			sb.append(dsd.getCombinationDomainSpecs());
 			sb.append("----------------");
 			sb.append(lR);
 			sb.append("Molecular Substrands:");
@@ -553,7 +554,7 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 			if (dir==null){
 				return;
 			}
-			GeneralizedInteractiveRegion[] ds = getSeqs();
+			GSFR[] ds = getSeqs();
 			if (ds.length==0){
 				return;
 			} else
@@ -567,18 +568,18 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 		public abstract ScorePenalty clone();
 		public abstract double evalScoreSub(int[][] domain, int[][] domain_markings);
 		public boolean affectedBy(int domain){
-			for(GeneralizedInteractiveRegion q : getSeqs()){
+			for(GSFR q : getSeqs()){
 				if (q.contains(domain)){
 					return true;
 				}
 			}
 			return false;
 		}
-		public abstract GeneralizedInteractiveRegion[] getSeqs();
+		public abstract GSFR[] getSeqs();
 		public abstract int getPriority();
 		public String toString(DomainDefinitions dsd) {
 			String myString = getClass().getSimpleName();
-			GeneralizedInteractiveRegion[] seqs = getSeqs();
+			GSFR[] seqs = getSeqs();
 			if (seqs.length>0){
 				myString += " : ";
 				for(int k = 0; k < seqs.length; k++){

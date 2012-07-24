@@ -29,7 +29,7 @@ public class CDNA2Token {
 	public static class Domain {
 		public boolean open, close, ss;
 		public String name;
-		public Domain pair;
+		private Domain pair;
 		public Domain(String name){
 			this.name = name;
 		}

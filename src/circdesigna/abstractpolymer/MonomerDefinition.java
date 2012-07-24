@@ -163,7 +163,12 @@ public abstract class MonomerDefinition {
 
 	public abstract int complement(int i);
 	
+	/**
+	 * @deprecated
+	 */
 	public abstract int getNormalBaseFromZero(int nonnormalBase);
+	
+	public abstract int getNormalBase(int nonnormalBase);
 	
 	public abstract int bindScore(int base, int base2);
 }

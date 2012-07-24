@@ -19,7 +19,7 @@
 */
 package circdesigna.impl;
 
-import static circdesigna.GeneralizedInteractiveRegion.DNAMARKER_DONTMUTATE;
+import static circdesigna.GSFR.DNAMARKER_DONTMUTATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -44,7 +44,7 @@ public class AbstractDomainDesignTarget extends CircDesigNASystemElement{
 	}
 	
 	public ArrayList<DomainSequence> wholeStrands = new ArrayList();
-	public ArrayList<GeneralizedInteractiveRegion> generalizedInteractiveRegions = new ArrayList();
+	public ArrayList<GSFR> generalizedInteractiveRegions = new ArrayList();
 	public ArrayList<DomainSequence> singleDomains = new ArrayList();
 	public ArrayList<DomainSequence> pairsOfDomains = new ArrayList();
 	private TreeSet<String> targetMoleculeNames = new TreeSet();
@@ -127,7 +127,7 @@ public class AbstractDomainDesignTarget extends CircDesigNASystemElement{
 		targetMoleculeNames.add(dpg.moleculeName);
 
 		//Target structures must end with a }.
-		if (!moleculeDefinition.trim().endsWith("}")){
+		if (dpg.getDomain(dpg.length()-1)!=-1){
 			throw new RuntimeException("Target molecule "+dpg.moleculeName+" did not end with a 3' end.");
 		}
 		

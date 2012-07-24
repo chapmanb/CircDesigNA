@@ -8,9 +8,10 @@ import circdesigna.DomainStructureBNFTree.DomainStructure;
 import circdesigna.abstractpolymer.MonomerDefinition;
 
 /**
- * An abstraction of a interactive region, consisting of continuous unpaired domains with energetically relevant "connector" base pairs
+ * A generalized structure free region, or, a sequence of structure free regions juxtaposed by hybridization.  
+ * consisting of continuous unpaired domains with energetically relevant "connector" base pairs
  */
-public class GeneralizedInteractiveRegion {
+public class GSFR {
 	public static final int NA_COMPLEMENT_FLAG = 0x8000;
 	public static final int NA_COMPLEMENT_FLAGINV = ~(NA_COMPLEMENT_FLAG);
 	public static final int DNAMARKER_DONTMUTATE = -1;
@@ -82,7 +83,7 @@ public class GeneralizedInteractiveRegion {
 	public boolean isCircular(){
 		return circular;
 	}
-	public void appendMoleculeNames(GeneralizedInteractiveRegion seq) {
+	public void appendMoleculeNames(GSFR seq) {
 		ArrayList<String> current = new ArrayList();
 		for(String q : moleculeName.split(",")){
 			current.add(q.trim());
@@ -336,11 +337,11 @@ public class GeneralizedInteractiveRegion {
 	}
 
 	public boolean equals(Object other){
-		if (!(other instanceof GeneralizedInteractiveRegion)){
+		if (!(other instanceof GSFR)){
 			return super.equals(other);
 		}
-		return Arrays.equals(connectorsToPrior, ((GeneralizedInteractiveRegion)other).connectorsToPrior) && 
-				Arrays.equals(domainList, ((GeneralizedInteractiveRegion)other).domainList) &&
-				circular == ((GeneralizedInteractiveRegion)other).circular; 
+		return Arrays.equals(connectorsToPrior, ((GSFR)other).connectorsToPrior) && 
+				Arrays.equals(domainList, ((GSFR)other).domainList) &&
+				circular == ((GSFR)other).circular; 
 	}
 }

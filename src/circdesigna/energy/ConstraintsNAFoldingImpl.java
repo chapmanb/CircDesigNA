@@ -7,13 +7,16 @@ import java.util.List;
 
 import circdesigna.CircDesigNA_SharedUtils;
 import circdesigna.Connector;
-import circdesigna.GeneralizedInteractiveRegion;
+import circdesigna.GSFR;
 import circdesigna.config.CircDesigNAConfig;
 import circdesigna.config.CircDesigNASystemElement;
 
 /**
  * Uses an N^3 DP algorithm to compute the MFE among all unpseudoknotted folded structures
  * of one or two sequences.
+ * 
+ * NOTE: None of these algorithms correctly fold exotic bases, such as P and Z. This would require new energy parameters for all
+ * interactions between non-P/Z and P/Z bases.
  */
 public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implements ConstraintsNAFolding, OneMatrixNAFolding{
 	private ExperimentalDuplexParams eParams;
@@ -75,7 +78,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 		return constraints_shared;
 	}
 	private class ConnectorFold {
-		public void init(GeneralizedInteractiveRegion gir, int i, int[][] domain) {
+		public void init(GSFR gir, int i, int[][] domain) {
 			leftN = 0;
 			rightN = 0;
 			//Scoring a set of connectors involves entirely coaxial stacking
@@ -194,7 +197,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 	}
 	
 
-	public double mfe(GeneralizedInteractiveRegion seq1, GeneralizedInteractiveRegion seq2, int[][] domain, int[][] domain_markings) {
+	public double mfe(GSFR seq1, GSFR seq2, int[][] domain, int[][] domain_markings) {
 		return mfe(seq1, seq2, domain, domain_markings, false);
 	}
 	/**
@@ -204,10 +207,10 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 	 * If order is 2, the optimization searches only over all structures which have the nested loops property.
 	 * (So, if a is paired to b, c is paired to d, either a < c < d < b or c < a < b < d.)
 	 */
-	public double mfe(GeneralizedInteractiveRegion seq1, GeneralizedInteractiveRegion seq2, int[][] domain, int[][] domain_markings, boolean onlyIllegalPairing) {		
+	public double mfe(GSFR seq1, GSFR seq2, int[][] domain, int[][] domain_markings, boolean onlyIllegalPairing) {		
 		if (!seq1.isCircular() && seq2.isCircular()){
 			//swap the sequences so that 1 is circular and 2 is not.
-			GeneralizedInteractiveRegion tmp = seq1;
+			GSFR tmp = seq1;
 			seq1 = seq2;
 			seq2 = tmp;
 		}
@@ -279,11 +282,11 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 			returnLock();
 		}
 	}
-	public double mfe(GeneralizedInteractiveRegion GeneralizedInteractiveRegion, int[][] domain, int[][] domain_markings) {
+	public double mfe(GSFR GeneralizedInteractiveRegion, int[][] domain, int[][] domain_markings) {
 		return mfe(GeneralizedInteractiveRegion, domain, domain_markings, false);
 	}
 
-	public double mfe(GeneralizedInteractiveRegion gir, int[][] domain, int[][] domain_markings, boolean onlyIllegalPairing) {
+	public double mfe(GSFR gir, int[][] domain, int[][] domain_markings, boolean onlyIllegalPairing) {
 		claimLock();
 		try {
 
@@ -346,8 +349,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 		}
 	}
 	
-	private void NXFold(int[][][] memo2, int[] seq, int N, int[] nicks, ConnectorFold[] connectors, boolean onlyUpperTriangle, FoldingConstraints constraints, SequenceMarker marker) {
-		switch(scoringModel){
+	private void NXFold(int[][][] memo2, int[] seq, int N, int[] nicks, ConnectorFold[] connectors, boolean onlyUpperTriangle, FoldingConstraints constraints, SequenceMarker marker) {		switch(scoringModel){
 		//3: Finds the MFE over all unpseudoknotted structures, implemented in O(n^3) time.
 		case 3:
 			N3Fold(memo2, seq, N, nicks, onlyUpperTriangle, constraints, marker);
@@ -1272,7 +1274,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 				EXTERNAL_10,
 				EXTERNAL_11);
 		
-		int QbMemory = 4; //Remember 4 rows of the Qb matrix (i through i+3)
+		int QbMemory = 8; //Remember 8 rows of the Qb matrix (i through i+7)
 		
 		if (memo2[PAIRED] == null || memo2[PAIRED].length < N){
 			memo2[PAIRED] = new int[Math.max(N, QbMemory)][];
@@ -1297,9 +1299,17 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 		if (nicks.length >= 2 && onlyUpperTriangle){
 			//Then, the outermost pair must have as its left base a base in the first strand 
 			maxI = nicks[0];
-			//So that when we enter the loop, we fill Qb[maxI].
-			for(int k = 0; k < QbMemory; k++){
-				swap(Qb, k%N, (maxI + 1 + k)%N);
+			if (N <= QbMemory) {
+				//Nothing to do, every row of Qb is filled 
+			} else {
+				int[][] QbCopy = new int[QbMemory][];
+				for(int k = 0; k < QbMemory; k++){
+					QbCopy[k] = Qb[k];
+					Qb[k] = null;
+				}
+				for(int k = 0; k < QbMemory; k++){
+					Qb[(maxI + 1 + k)%N] = QbCopy[k];
+				}
 			}
 		}
 
@@ -1322,16 +1332,13 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 			ConnectorSummary conSum_ij = new ConnectorSummary();
 			for( int L = minL; L <= N; L++ ){
 				int j = (i + L - 1) % N;
+				
 				if (onlyUpperTriangle && j < i){
 					break;
 				}
 				int countNicks = countNicks(i,j,nicks);
-				boolean hasTopNick = containsNick(i, (i+1)%N, nicks);
-				boolean hasBottomNick = containsNick((j-1+N)%N,j,nicks);
 			
-				if (countNicks > 0){
-					conSum_ij = null;
-				} else {
+				if (countNicks == 0){
 					if (L >= 3){
 						conSum_ij.extendInterval(seq[(j-2+N)%N], connectors[(j-2+N)%N], 
 								seq[(j-1+N)%N], connectors[(j - 1 + N)%N], 
@@ -1357,16 +1364,14 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 					//i and j pair, and [i,j] contains one non-connector pair, [d,e]. 
 					//The region formed between these two pairs may be interior or exterior. 
 					//Recall that no disconnected structures are allowed.
-					for(int L1 = 0; L1 <= QbMemory - 2; L1++){
-						for(int L2 = 0; L2 <= QbMemory - 2; L2++){
-							if (L1 + L2 + 4 <= L){
-								int d = (i+L1+1)%N;
-								int e = (j-L2-1+N)%N;
-								int score = Qb[d][e];
-								if (score != Integer.MAX_VALUE){
-									score = combine(score, loopDG_2pair(seq, N, nicks, i, L, L1, L2, connectors));
-									Qbi[j] =  alt(Qbi[j], score);		
-								}
+					for(int L1 = 0; L1 <= QbMemory - 2 && L1 + 4 <= L; L1++){
+						for(int L2 = 0; L1 + L2 <= QbMemory - 2 && L1 + L2 + 4 <= L; L2++){
+							int d = (i+L1+1)%N;
+							int e = (j-L2-1+N)%N;
+							int score = Qb[d][e];
+							if (score != Integer.MAX_VALUE){
+								score = combine(score, loopDG_2pair(seq, N, nicks, i, L, L1, L2, connectors));
+								Qbi[j] =  alt(Qbi[j], score);		
 							}
 						}
 					}
@@ -1530,7 +1535,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 				if (leftTerminator == Integer.MAX_VALUE){
 					return Integer.MAX_VALUE;
 				}
-				int ep1 = (j - L2)%N;
+				int ep1 = (j - L2 + N)%N;
 				int dm1 = (i + L1)%N;
 				int rightTerminator = eParams.getInteriorNNTerminal_deci(basee, based, seq[ep1], seq[dm1]);
 				if (rightTerminator == Integer.MAX_VALUE){
@@ -1974,13 +1979,13 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 		return j;
 	}
 
-	public double mfeNoDiag(GeneralizedInteractiveRegion GeneralizedInteractiveRegion,
-			GeneralizedInteractiveRegion GeneralizedInteractiveRegion2, int[][] domain,
+	public double mfeNoDiag(GSFR GeneralizedInteractiveRegion,
+			GSFR GeneralizedInteractiveRegion2, int[][] domain,
 			int[][] domain_markings) {
 		throw new RuntimeException("TODO");
 	}
 
-	public double mfeStraight(GeneralizedInteractiveRegion seq1, GeneralizedInteractiveRegion seq2, int[][] domain, int[][] domain_markings, int markLeft, int markRight, int joffset) {
+	public double mfeStraight(GSFR seq1, GSFR seq2, int[][] domain, int[][] domain_markings, int markLeft, int markRight, int joffset) {
 		int score = 0;
 		int N1 = seq1.length(domain);
 		int N2 = seq2.length(domain);

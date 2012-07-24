@@ -32,7 +32,7 @@ import circdesigna.CircDesigNA_SharedUtils;
 import circdesigna.DesignIntermediateReporter;
 import circdesigna.DomainDefinitions;
 import circdesigna.DomainSequence;
-import circdesigna.GeneralizedInteractiveRegion;
+import circdesigna.GSFR;
 import circdesigna.SequencePenalties;
 import circdesigna.abstractDesigner.ParetoSort;
 import circdesigna.config.CircDesigNAConfig;
@@ -82,7 +82,7 @@ public class CircDesigNAImpl extends CircDesigNA{
 
 		ArrayList<DomainSequence> rawStrands = new ArrayList();
 		rawStrands.addAll(designTarget.wholeStrands);
-		ArrayList<GeneralizedInteractiveRegion> girs = new ArrayList();
+		ArrayList<GSFR> girs = new ArrayList();
 		girs.addAll(designTarget.generalizedInteractiveRegions);
 		ArrayList<DuplexClosingTarget> duplexClosings = new ArrayList();
 		duplexClosings.addAll(designTarget.duplexClosings);
@@ -100,14 +100,14 @@ public class CircDesigNAImpl extends CircDesigNA{
 		//Structural penalties
 		ArrayList<MFEHybridNonlegalScore> hybridScorings = new ArrayList<MFEHybridNonlegalScore>();
 		for(int i = 0; i < girs.size(); i++){
-			GeneralizedInteractiveRegion ds = girs.get(i);
+			GSFR ds = girs.get(i);
 			//Secondary Structure Formation
 			allScores.add(new SelfFoldNonlegalScore(ds, DIR));
 			hybridScorings.add(new MFEHybridNonlegalScore(ds, ds, DIR, false));
 
 			//Hybridization
 			for(int k = i+1; k < girs.size(); k++){ //Do only upper triangle
-				GeneralizedInteractiveRegion ds2 = girs.get(k);
+				GSFR ds2 = girs.get(k);
 				boolean sameMol = ds.getMoleculeName().equals(ds2.getMoleculeName());
 				hybridScorings.add(new MFEHybridNonlegalScore(ds, ds2, DIR, sameMol));
 			}
@@ -191,16 +191,16 @@ public class CircDesigNAImpl extends CircDesigNA{
 	public class MFEHybridNonlegalScore extends ScorePenalty {
 		//True for intermolecular interactions
 		private boolean entropicPenalty = false;
-		public MFEHybridNonlegalScore(GeneralizedInteractiveRegion ds, GeneralizedInteractiveRegion ds2, DesignIntermediateReporter dir, boolean sameMolecule){
+		public MFEHybridNonlegalScore(GSFR ds, GSFR ds2, DesignIntermediateReporter dir, boolean sameMolecule){
 			super(dir);
-			this.ds = new GeneralizedInteractiveRegion[]{ds,ds2};
+			this.ds = new GSFR[]{ds,ds2};
 			chooseScore(dir);
 			entropicPenalty = !sameMolecule;
 		}		
 		public int getPriority(){
 			return 2;
 		}
-		private GeneralizedInteractiveRegion[] ds;
+		private GSFR[] ds;
 		public double evalScoreSub(int[][] domain, int[][] domain_markings){
 			double BIMOLECULAR = options.bimolecularPenalty.getState();
 			double deltaG = (flI.mfe(ds[0],ds[1],domain,domain_markings,true))+(entropicPenalty?BIMOLECULAR:0);
@@ -214,7 +214,7 @@ public class CircDesigNAImpl extends CircDesigNA{
 		public boolean isIntramolecular(){
 			return !entropicPenalty;
 		}
-		public GeneralizedInteractiveRegion[] getSeqs() {
+		public GSFR[] getSeqs() {
 			return ds;
 		}
 		public ScorePenalty clone() {
@@ -371,9 +371,9 @@ public class CircDesigNAImpl extends CircDesigNA{
 	}
 	
 	public class SelfFoldNonlegalScore extends ScorePenalty { 
-		public SelfFoldNonlegalScore(GeneralizedInteractiveRegion ds, DesignIntermediateReporter dir){
+		public SelfFoldNonlegalScore(GSFR ds, DesignIntermediateReporter dir){
 			super(dir);
-			this.ds = new GeneralizedInteractiveRegion[]{ds};
+			this.ds = new GSFR[]{ds};
 			chooseScore(dir);
 		}
 		public ScorePenalty clone() {
@@ -382,7 +382,7 @@ public class CircDesigNAImpl extends CircDesigNA{
 			ci.cur_score = cur_score;
 			return ci;
 		}
-		private GeneralizedInteractiveRegion[] ds;
+		private GSFR[] ds;
 		public double evalScoreSub(int[][] domain, int[][] domain_markings){
 			double deltaG = (flI.mfe(ds[0],domain,domain_markings,true));
 			return Math.max(0,-deltaG);
@@ -394,7 +394,7 @@ public class CircDesigNAImpl extends CircDesigNA{
 		public int getPriority(){
 			return 1;
 		}
-		public GeneralizedInteractiveRegion[] getSeqs() {
+		public GSFR[] getSeqs() {
 			return ds;
 		}
 	}

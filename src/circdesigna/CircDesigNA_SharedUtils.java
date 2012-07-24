@@ -182,11 +182,11 @@ public class CircDesigNA_SharedUtils {
 	}
 
 
-	public static void utilRemoveDuplicateSequences(List<? extends GeneralizedInteractiveRegion> girs) {
-		ListIterator<? extends GeneralizedInteractiveRegion> itr = girs.listIterator();
+	public static void utilRemoveDuplicateSequences(List<? extends GSFR> girs) {
+		ListIterator<? extends GSFR> itr = girs.listIterator();
 		big: while(itr.hasNext()){
-			GeneralizedInteractiveRegion seq = itr.next();
-			for(GeneralizedInteractiveRegion q : girs){
+			GSFR seq = itr.next();
+			for(GSFR q : girs){
 				if (q!=seq && q.equals(seq)){
 					q.appendMoleculeNames(seq);
 					itr.remove();
@@ -216,7 +216,7 @@ public class CircDesigNA_SharedUtils {
 	}
 
 	
-	public static boolean checkComplementary(GeneralizedInteractiveRegion a, GeneralizedInteractiveRegion b){
+	public static boolean checkComplementary(GSFR a, GSFR b){
 		for(int k = 0; k < a.domainList.length; k++){
 			for(int y = 0; y < b.domainList.length; y++){
 				int abase = a.domainList[k];
@@ -485,7 +485,7 @@ public class CircDesigNA_SharedUtils {
 	}
 
 	
-	public static void utilGIRFinder(DomainPolymerGraph dsg, ArrayList<GeneralizedInteractiveRegion> girs) {
+	public static void utilGIRFinder(DomainPolymerGraph dsg, ArrayList<GSFR> girs) {
 		LinkedList<ArrayList<Object>> stack = new LinkedList();
 		stack.push(new ArrayList()); //outermost walk along the structure
 		for(int k = 0; k < dsg.length(); k++){
@@ -514,7 +514,7 @@ public class CircDesigNA_SharedUtils {
 		}
 	}
 
-	private static void addGIRStructureWalk(ArrayList<Object> walk, ArrayList<GeneralizedInteractiveRegion> girs, AbstractComplex dsd) {
+	private static void addGIRStructureWalk(ArrayList<Object> walk, ArrayList<GSFR> girs, AbstractComplex dsd) {
 		//Rotate the walk so that it starts at the beginning of a strand, if the walk is not circular
 		int startOffset = 0; 
 		for (int i = 0; i < walk.size(); i++){
@@ -560,7 +560,7 @@ public class CircDesigNA_SharedUtils {
 				continue;
 			}
 			
-			GeneralizedInteractiveRegion made = new GeneralizedInteractiveRegion();
+			GSFR made = new GSFR();
 			made.setDomainsAndConnectors(subwalk, dsd);
 			made.setCircular(isCircular);
 			girs.add(made);

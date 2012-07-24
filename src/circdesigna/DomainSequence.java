@@ -26,5 +26,5 @@ package circdesigna;
 /**
  * An abstraction of a DNA strand, interpreted as a list of domains.
  */
-public class DomainSequence extends GeneralizedInteractiveRegion{
+public class DomainSequence extends GSFR{
 }

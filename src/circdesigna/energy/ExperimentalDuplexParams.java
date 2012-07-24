@@ -43,6 +43,9 @@ import circdesigna.config.CircDesigNASystemElement;
 
 /**
  * The actual Experimental Parameters Database.
+ * 
+ * Note: this class does not support exotic bases, such as P or Z. Such exotic bases must be factored out (hint: Std.monomer.getNormalBase)
+ * before calling these methods.
  */
 public class ExperimentalDuplexParams extends CircDesigNASystemElement {
 	public ExperimentalDuplexParams(CircDesigNAConfig config){
@@ -70,7 +73,7 @@ public class ExperimentalDuplexParams extends CircDesigNASystemElement {
 		StandardizedThermoFileLoader.makeTable(this,dG,dH);
 	}
 	private final int getNormalBase(int nonnormalBase){
-		return Std.monomer.getNormalBaseFromZero(nonnormalBase);
+		return nonnormalBase - 1;//Std.monomer.getNormalBaseFromZero(nonnormalBase); TODO
 	}
 	private static final int D2DECI(double value){
 		//Round.
@@ -191,6 +194,7 @@ public class ExperimentalDuplexParams extends CircDesigNASystemElement {
 			int ATPenalty = getATPenalty_deci(seq[i], seq[j]);
 			energy += ATPenalty;
 		}
+		
 		return energy;
 	}
 

@@ -22,6 +22,7 @@ package circdesigna.parser;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 import beaver.Parser.Exception;
 import circdesigna.DomainDefinitions;
@@ -50,9 +51,32 @@ public class CDNA2PublicParser {
 			}
 			ArrayList parse = (ArrayList) cp.parse(new CDNA2Scanner(new StringReader(info2[1])));
 			res.moleculeName = (String) info2[0];
-			for(Object o : parse){
+			for(ListIterator oi = parse.listIterator(); oi.hasNext();){
+				Object o = oi.next();
 				if (o instanceof CDNA2Token.Domain){
-					((CDNA2Token.Domain)o).validate(domains);
+					CDNA2Token.Domain co = ((CDNA2Token.Domain)o);
+					co.validate(domains);
+					
+					//Special: expand combined domains
+					String comboNameL = co.name;
+					if (comboNameL.endsWith("*")){
+						comboNameL = comboNameL.substring(0, comboNameL.length()-1);
+					}
+					String[] combinedDomains = domains.expandCombinationName(comboNameL);
+					if (combinedDomains != null){
+						oi.remove();
+						
+						if (co.name.endsWith("*")){
+							combinedDomains = complement(combinedDomains);
+						}
+						for(String n : combinedDomains){
+							CDNA2Token.Domain no = new CDNA2Token.Domain(n);
+							no.close = co.close;
+							no.open = co.open;
+							no.ss = co.ss;
+							oi.add(no);
+						}
+					}
 				}
 			}
 			
@@ -69,5 +93,17 @@ public class CDNA2PublicParser {
 			throw new RuntimeException(e.getCause());
 		}
 		return res;
+	}
+	private static String[] complement(String[] a) {
+		String[] b = new String[a.length];
+		for(int i = 0; i < a.length; i++){
+			b[i] = a[a.length-1-i];
+			if (b[i].endsWith("*")){
+				b[i] = b[i].substring(0,b[i].length()-1);
+			} else {
+				b[i] += "*";
+			}
+		}
+		return b;
 	}
 }
