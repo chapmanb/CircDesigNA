@@ -83,10 +83,10 @@ public class CircDesigNA_SharedUtils {
 					String name = ((CDNA2Token.Domain)token).name;
 					int newBase = 0;
 					if (name.endsWith("*")){
-						newBase = dsd.lookupDomainName(name.substring(0,name.length()-1));
+						newBase = dsd.getDomainFromName(name.substring(0,name.length()-1));
 						newBase |= NA_COMPLEMENT_FLAG;
 					} else {
-						newBase = dsd.lookupDomainName(name);
+						newBase = dsd.getDomainFromName(name);
 					}
 					if (newBase >= 0){
 						bases.add(newBase);

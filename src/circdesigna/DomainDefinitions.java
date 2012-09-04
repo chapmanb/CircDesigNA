@@ -65,7 +65,7 @@ public class DomainDefinitions extends CircDesigNASystemElement{
 	 * Throws an exception if the domainName is not registered, and returns a negative value
 	 * if the domain is registered, but isn't given a number (i.e., domains of length 0)
 	 */
-	public int lookupDomainName(String domainName) {
+	public int getDomainFromName(String domainName) {
 		if (!nameMap.containsKey(domainName)){
 			return -1;
 		}

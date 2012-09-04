@@ -305,7 +305,7 @@ public class DomainPolymerGraph extends AbstractComplex{
 				if (domainName.endsWith("*")){
 					domainNameL --;
 				}
-				int numberDomain = out2.domainDefs.lookupDomainName(domainName.substring(0,domainNameL));
+				int numberDomain = out2.domainDefs.getDomainFromName(domainName.substring(0,domainNameL));
 				int numberDomain2 = numberDomain;
 				if (numberDomain2 < 0){
 					throw new RuntimeException("Invalid domain: "+domainName);

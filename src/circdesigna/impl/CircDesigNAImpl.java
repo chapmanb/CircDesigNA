@@ -63,7 +63,8 @@ public class CircDesigNAImpl extends CircDesigNA{
 
 	public void setPhase(int phase){
 		if (flI instanceof ConstraintsNAFoldingImpl){
-			((ConstraintsNAFoldingImpl) flI).setScoringModel(phase);
+			ConstraintsNAFoldingImpl c = (ConstraintsNAFoldingImpl) flI;
+			c.setScoringModel(phase, options.max_loop_size.getState());
 		}
 	}
 	public int countPhases() {

@@ -25,7 +25,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 	private int[][] seq_origin_shared;
 	private ConnectorFold[] connectors_shared;
 	private FoldingConstraints constraints_shared;
-	private int scoringModel;
+	private int scoringModel, scoringMaxLoopSize;
 
 	public ConstraintsNAFoldingImpl(CircDesigNAConfig System) {
 		super(System);
@@ -194,6 +194,12 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 	
 	public void setScoringModel(int i) {
 		scoringModel = i;
+		scoringMaxLoopSize = 2;
+	}
+
+	public void setScoringModel(int i, int maxLoopSize) {
+		scoringModel = i;
+		scoringMaxLoopSize = maxLoopSize;
 	}
 	
 
@@ -1264,7 +1270,11 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 	 * This is essentially always on, with the exception of circular folding.
 	 * @param domain_markings 
 	 * @param domain 
-	 * @param ds 
+	 * @param ds
+	 * 
+	 *  
+	 *  TODO: complete rewrite, don't reference Qb[i][j], instead reference QbL [i] (j implicit),
+	 *  where QbL is built from Qb(L-1).
 	 */
 	private void N2Fold_NoLoops(int[][][] memo2, int[] seq, int N, int[] nicks, ConnectorFold[] connectors, boolean onlyUpperTriangle, FoldingConstraints constraints, SequenceMarker marker) {
 		//Initialization: All structures are impossible.
@@ -1274,7 +1284,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 				EXTERNAL_10,
 				EXTERNAL_11);
 		
-		int QbMemory = 8; //Remember 8 rows of the Qb matrix (i through i+7)
+		int QbMemory = Math.max(scoringMaxLoopSize, 2); //Remember a certain number of rows of the Qb matrix
 		
 		if (memo2[PAIRED] == null || memo2[PAIRED].length < N){
 			memo2[PAIRED] = new int[Math.max(N, QbMemory)][];
@@ -1326,7 +1336,7 @@ public class ConstraintsNAFoldingImpl extends CircDesigNASystemElement implement
 				//Then, the outermost pair must have as its right base a base in the last strand 
 				int minJ = nicks[nicks.length-2]+1;
 				//It holds that minJ > maxI.
-				minL = minJ - maxI + 1;
+				minL = minJ - i + 1;
 			}
 			
 			ConnectorSummary conSum_ij = new ConnectorSummary();

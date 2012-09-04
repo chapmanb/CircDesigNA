@@ -167,4 +167,8 @@ public class DnaDefinition extends MonomerDefinition{
 	public int[] getMonomers() {
 		return baseOrdering;
 	}
+	
+	public String toString(){
+		return "dna";
+	}
 }

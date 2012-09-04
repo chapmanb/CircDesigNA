@@ -149,8 +149,9 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 						domain_length_t.put(i, val);
 					}
 				}
-				if (num_domain==0){
-					throw new RuntimeException("No valid molecules to design.");
+				
+				if (inputMolecules.isEmpty() || num_domain == 0){
+					throw new RuntimeException("Nothing to design!");
 				}
 				
 				final int num_domain_2 = num_domain;
@@ -188,7 +189,7 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 						try {
 							Thread.sleep(10);
 						} catch (InterruptedException e) {
-							e.printStackTrace();
+							//e.printStackTrace();
 						}
 					}
 					if (r.abort){

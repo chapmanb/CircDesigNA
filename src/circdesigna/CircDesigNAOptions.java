@@ -153,10 +153,26 @@ public class CircDesigNAOptions extends CircDesigNASystemElement{
 		}
 	};
 
+	public SeqDesignerOption.Integer max_loop_size = new SeqDesignerOption.Integer(){
+		public String getDescription() {
+			return "Maximum loop size scored in approximated MFE algorithm";
+		}
+		public int getDefaultState(){
+			return 8;
+		}
+		private int loopSize = getDefaultState(); 
+		public int getState() {
+			return loopSize;
+		}
+		public synchronized void setState(int newVal) {
+			loopSize = Math.max(0,newVal);
+		}
+	};
+
 	
 	//Make sure to update this please.
 	public final SeqDesignerOption[] options = new SeqDesignerOption[]{
-			bimolecularPenalty, rule_ccend_option, globalSearch, population_size, end_score_threshold 
+			bimolecularPenalty, rule_ccend_option, globalSearch, population_size, end_score_threshold, max_loop_size, 
 	};
 	
 }

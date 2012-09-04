@@ -550,7 +550,7 @@ public class DesignMultipleTimes {
 		if (molecule[0]==null){
 			return;
 		}
-		int domainNum = dsd.lookupDomainName(molecule[0]);
+		int domainNum = dsd.getDomainFromName(molecule[0]);
 		for(int k = 0; k < seq.length(); k++){
 			domains[domainNum][k] = dsd.Std.monomer.decodeBaseChar(seq.charAt(k));
 		}

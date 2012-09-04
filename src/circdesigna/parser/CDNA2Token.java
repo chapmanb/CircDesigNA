@@ -95,8 +95,8 @@ public class CDNA2Token {
 					//Are they reverse complementary?
 					boolean areRevCompFixed = false;
 					try {
-						int i = domains.lookupDomainName(name);
-						int j = domains.lookupDomainName(pair.name);
+						int i = domains.getDomainFromName(name);
+						int j = domains.getDomainFromName(pair.name);
 						areRevCompFixed = isComplements(i,j,domains);
 					} catch (Throwable e){
 						areRevCompFixed = false;

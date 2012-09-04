@@ -44,4 +44,7 @@ public class RnaDefinition extends DnaDefinition{
 			return super.displayBase(base);
 		}
 	}
+	public String toString(){
+		return "rna";
+	}
 }

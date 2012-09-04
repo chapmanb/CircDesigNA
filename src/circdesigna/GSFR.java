@@ -176,6 +176,15 @@ public class GSFR {
 		}
 		return length;
 	}
+	public int length(DomainDefinitions dsd){
+		int length = 0, seq;
+		for(int i = 0; i < domainList.length; i++){
+			//Extract which domain
+			seq = domainList[i] & NA_COMPLEMENT_FLAGINV;
+			length += dsd.getDomainLength(seq);
+		}
+		return length;
+	}
 	public void mark(int q, int i, int[][] domain, int[][] domain_markings) {
 		if(domain_markings==null) return;
 		if (i < 0){
@@ -320,18 +329,18 @@ public class GSFR {
 	}
 	public String toString(DomainDefinitions dsd){
 		StringBuffer sb = new StringBuffer();
-		sb.append("(Unpaired domains) "+getMoleculeName()+": ");
+		//sb.append("(Unpaired domains) "+getMoleculeName()+": ");
 		for(int i = 0; i < domainList.length; i++){
 			sb.append(dsd.getDomainName(domainList[i] & NA_COMPLEMENT_FLAGINV));
 			if ((domainList[i]&NA_COMPLEMENT_FLAG)!=0){
 				sb.append("*");
 			}
 			if (i+1<domainList.length){
-				sb.append("|");
+				sb.append(" ");
 			}
 		}
 		if (isCircular()){
-			sb.append(" (circular)");
+			//sb.append(" (circular)");
 		}
 		return sb.toString();
 	}
