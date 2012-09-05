@@ -62,6 +62,7 @@ import circdesigna.impl.SequencePenaltiesImpl;
  * Subclasses specify certain behaviors of the functions in main(), thus actually producing a full design algorithm.
  */
 public abstract class CircDesigNA extends CircDesigNASystemElement{
+	
 	public CircDesigNA(CircDesigNAConfig std) {
 		super(std);
 	}
@@ -243,6 +244,14 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 		 * Returns a human-readable dump of the output.
 		 */
 		public String getResult(AlternativeResult res2) {
+			return getResult(res2, new boolean[]{false});
+		}
+		/**
+		 * Returns a human-readable dump of the output.
+		 */
+		public String getResult(AlternativeResult res2, Object formattingParameters) {
+			boolean domainDefsOnly = ((boolean[])formattingParameters)[0];
+			
 			String progress = "";
 			if (r.dbesign != null){
 				progress = String.format("Progress to next iteration: %.0f%%\n", 100*r.dbesign.getProgress());
@@ -274,20 +283,25 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 			sb.append(lR);
 			sb.append("----------------");
 			sb.append(lR);
+			StringBuffer dd = new StringBuffer();
 			for(int k = 0; k < outputDomains.length; k++){
-				sb.append(dsd.getDomainName(k));
-				sb.append("\t");
-				sb.append(outputDomains[k].length());
+				dd.append(dsd.getDomainName(k));
+				dd.append("\t");
+				dd.append(outputDomains[k].length());
 				String arg = dsd.getArguments(k); //Does not include -init()
 				if (arg.length()>0){
-					sb.append("\t"+dsd.getArguments(k));	
+					dd.append("\t"+dsd.getArguments(k));	
 				}
-				sb.append("\t");
-				sb.append("-init(");
-				sb.append(outputDomains[k]);
-				sb.append(")");
-				sb.append(lR);
+				dd.append("\t");
+				dd.append("-init(");
+				dd.append(outputDomains[k]);
+				dd.append(")");
+				dd.append(lR);
 			}
+			if (domainDefsOnly){
+				return dd.toString();
+			}
+			sb.append(dd.toString());
 			sb.append(dsd.getCombinationDomainSpecs());
 			sb.append("----------------");
 			sb.append(lR);
@@ -1281,5 +1295,13 @@ public abstract class CircDesigNA extends CircDesigNASystemElement{
 	}
 	public static int int_urn(int from, int to) {
 		return (int)(Math.random()*(to-from+1)+from);
+	}
+
+	
+	public static void main(String[] args){
+		
+	}
+	public static void printUsage(){
+		System.out.println("java "+CircDesigNA.class+" ");
 	}
 }

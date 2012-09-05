@@ -80,7 +80,7 @@ public interface SequenceDesigner<T extends CircDesigNAOptions> {
 				FARTHEST1 = BEST+1, 
 				ERROR = FARTHEST1+1,
 				LOG = ERROR + 1,
-				OTHER=LOG + 1;
+				OTHER= LOG + 1;
 		public int TYPE;
 		//Used as a "subtype"
 		public int ID;
@@ -93,6 +93,7 @@ public interface SequenceDesigner<T extends CircDesigNAOptions> {
 	//Default. To get a specific population member, use 
 	public AlternativeResult[] getAlternativeResults();
 	public String getResult(AlternativeResult alternative);
+	public String getResult(AlternativeResult alternative, Object formattingParameters);
 	/**
 	 * Returns the shared score reporter object (used for generating real time visuals)
 	 */

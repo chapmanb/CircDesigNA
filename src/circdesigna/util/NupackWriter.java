@@ -30,6 +30,7 @@ public class NupackWriter extends CircDesigNASystemElement{
 		String domainDefs = null;
 		String moleculeDefs = null;
 		String outputFile = null;
+		double stopCondition = 1;
 		int i = 0;
 		for(; i < args.length; i++){
 			if (args[i].equals("--material")){
@@ -42,6 +43,9 @@ public class NupackWriter extends CircDesigNASystemElement{
 				} else {
 					throw new RuntimeException("Unrecognized material: " + args[i]);
 				}
+			} else if (args[i].equals("--stop")){
+				i++;
+				stopCondition = new Double(args[i]);
 			} else if (args[i].equals("-d")){
 				i++;
 				domainDefs = readCompletely(args[i]);
@@ -60,15 +64,17 @@ public class NupackWriter extends CircDesigNASystemElement{
 		}
 		NupackWriter converter = new NupackWriter(cfg, domainDefs, moleculeDefs);
 		PrintWriter out = new PrintWriter(new File(outputFile));
-		converter.toNupack(out);
+		converter.toNupack(out, stopCondition);
 		out.close();
 	}
 	private static void printUsage() {
-		System.out.println("Usage: java "+NupackWriter.class+" [--material <dna / rna>] -d <domains> -m <molecules> -o <outputfile>");
+		System.out.println("Usage: java "+NupackWriter.class+" [--material <dna / rna>] [--stop <stop value>] -d <domains> -m <molecules> -o <outputfile>");
 		System.out.println("\t This class converts a system specified in CircDesigNA syntax to Nupack's Multiobjective Design syntax.");
 		System.out.println("\t-d : Specify a file containing the domain specifications of the system");
 		System.out.println("\t-m : Specify a file containing the molecule specifications of the system");
 		System.out.println("\t-o : Specify a file to hold the output Nupack multiobjective design specification");
+		System.out.println("\t--stop : Specify the defect stop condition for all molecules, used in Nupack's designer. Defaults to 1%");
+		System.out.println("\t--material : Specify dna or rna design");
 	}
 	private static String readCompletely(String filename) {
 		try {
@@ -87,7 +93,7 @@ public class NupackWriter extends CircDesigNASystemElement{
 	/**
 	 * Outputs the nupack specification to printwriter out
 	 */
-	private void toNupack(PrintWriter out) {
+	private void toNupack(PrintWriter out, double stopCondition) {
 		//Nupack does not allow domain names like "1" or "2" . So, append a prefix.
 		String domainPrefix = "d_";
 		
@@ -166,6 +172,10 @@ public class NupackWriter extends CircDesigNASystemElement{
 			for(String dom : plainDomainOutput.split("\\s+")){
 				out.printf("%s ", domainPrefix+dom);
 			}
+			out.println();
+			
+			//State the stop condition for this molecule.
+			out.printf("%s.stop = %f", molName, stopCondition);
 			out.println();
 		}
 	}

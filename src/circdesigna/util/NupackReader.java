@@ -129,13 +129,11 @@ public class NupackReader extends CircDesigNASystemElement{
 			}
 		}
 		
-		out.println("# Domains");
 		for(int i = 0; i < dsd.domainLengths.length; i++){
 			out.println(dsd.getDomainName(i)+" "+dsd.getConstraint(i));
 		}
 
 		out.println("");
-		out.println("# Molecules");
 		for(String k : molecules){
 			out.println(k);
 		}
