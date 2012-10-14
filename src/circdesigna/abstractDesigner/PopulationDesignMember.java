@@ -26,14 +26,17 @@ public abstract class PopulationDesignMember<T extends PopulationDesignMember> i
 	//Population design members are sorted by number in the population.
 	private int myID = 0;
 	public final int compareTo(T o) {
-		return myID - o.myID;
+		return myID - o.getID();
 	}
 	public int getID(){
 		return myID;
 	}
+  public void setID(int id){
+    myID = id;
+  }
 	public T designerCopyConstructor(int myID){
 		T toRet = designerCopyConstructor();
-		toRet.myID = myID;
+		toRet.setID(myID);
 		toRet.seedFromOther(this);
 		return toRet;
 	}
