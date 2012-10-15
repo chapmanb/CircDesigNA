@@ -52,7 +52,7 @@ public class ExperimentalDuplexParams extends CircDesigNASystemElement {
 		super(config);
 		//System.out.print("Unpacking Thermo Parameters ... ");
 		
-		ZipInputStream paramZip = ZipExtractor.getFile("parameters.zip");
+		ZipInputStream paramZip = ZipExtractor.getFile("circdesigna-parameters.zip");
 		ZipEntry nextEntry;
 		String dG = null, dH = null;
 		try {
