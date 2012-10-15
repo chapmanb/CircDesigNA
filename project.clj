@@ -1,4 +1,4 @@
-(defproject org.clojars.chapmanb/circdesigna "0.1.0-SNAPSHOT"
+(defproject org.clojars.chapmanb/circdesigna "0.0.1"
   :description "Synthetic biology design tool with support for extensible sequence constraints"
   :url "https://github.com/taifunbrowser/CircDesigNA"
   :dependencies [[org.clojure/clojure "1.4.0"]
